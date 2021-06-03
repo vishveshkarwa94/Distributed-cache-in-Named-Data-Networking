@@ -6,7 +6,12 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="Capstone" />
+        <module name="PrimaryServer" />
+        <module name="Router" />
+        <module name="CacheServer" />
+        <module name="User" />
+        <module name="CacheCooperationRouter" />
+        <module name="CacheControlServer" />
       </profile>
     </annotationProcessing>
   </component>
