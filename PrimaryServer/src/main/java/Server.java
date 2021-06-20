@@ -78,6 +78,7 @@ public class Server {
             socket = new DatagramSocket(port);
             totalReq = 0;
             Server primaryServer = new Server();
+            System.out.println("Primary Server started on port : "+port);
             primaryServer.acceptRequests();
         }
         catch (Exception e){

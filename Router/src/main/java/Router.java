@@ -133,7 +133,7 @@ public class Router {
     static Server cacheServer;
     static HashMap<String, HashSet<Address>> PIT;
     static HashSet<Address> nearestNeighbours;
-    static Address cacheCooperationRouter = new Address();
+    static Address cacheCooperationRouter;
     static HashMap<Address, CountingBloomFilter> cacheSummaries;
     static CountingBloomFilter localCacheSummary;
     static DatagramSocket socket;
