@@ -4,12 +4,18 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>Capstone</artifactId>
-        <groupId>org.example</groupId>
+        <groupId>org.rit</groupId>
         <version>1.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>PrimaryServer</artifactId>
-
-
+    <dependencies>
+        <dependency>
+            <groupId>org.rit</groupId>
+            <artifactId>Util</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
 </project>
