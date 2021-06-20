@@ -201,6 +201,7 @@ public class Router {
             localCacheSummary = cacheServer.getBloomFilter();
 
             Router router = new Router();
+            System.out.println("Router Started on port: "+nodePort);
             router.acceptRequests();
 
         } catch (Exception e) {
