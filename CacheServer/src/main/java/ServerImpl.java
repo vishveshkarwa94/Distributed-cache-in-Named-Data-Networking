@@ -19,6 +19,7 @@ public class ServerImpl implements Server{
         node.next = head.next;
         head.next.previous = node;
         head.next = node;
+        bloomFilter.add(new Key(node.key.getBytes()));
     }
 
     private void removeNode(Node node){
@@ -57,7 +58,7 @@ public class ServerImpl implements Server{
             tail = new Node();
             head.next = tail;
             tail.previous = head;
-            bloomFilter = new CountingBloomFilter(20, 3, Hash.MURMUR_HASH);
+            bloomFilter = new CountingBloomFilter(size, 3, Hash.MURMUR_HASH);
             return true;
         }
         catch (Exception e){
@@ -72,13 +73,11 @@ public class ServerImpl implements Server{
             Node temp = new Node();
             temp.key = key;
             temp.value = value;
-            bloomFilter.add(new Key(key.getBytes()));
             cache.put(key, temp);
             addNode(temp);
             if(cache.size() > size){
                 tail = popTail();
                 cache.remove(tail.key);
-                bloomFilter.delete(new Key(tail.key.getBytes()));
             }
         }
         catch (Exception e){
