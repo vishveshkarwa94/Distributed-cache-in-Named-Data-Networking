@@ -36,7 +36,6 @@ public class User {
 
         try{
 
-
             int port = Integer.parseInt(args[0]);
             socket = new DatagramSocket(port);
             size = Integer.parseInt(args[1]);

@@ -3,7 +3,7 @@ import org.apache.commons.lang3.SerializationUtils;
 import java.io.Serializable;
 
 public class Packet implements Serializable {
-    private String type;
+    private PacketTypes type;
     private String name;
     private byte[] data;
 
@@ -12,11 +12,27 @@ public class Packet implements Serializable {
     }
 
     public String getType() {
-        return type;
+        return type.name();
     }
 
     public void setType(String type) {
-        this.type = type;
+        switch (type){
+            case "interest":
+                this.type = PacketTypes.interest;
+                break;
+
+            case "data":
+                this.type = PacketTypes.data;
+                break;
+
+            case "deleteCache":
+                this.type = PacketTypes.deleteCache;
+                break;
+
+            case "summary":
+                this.type = PacketTypes.summary;
+                break;
+        }
     }
 
     public String getName() {

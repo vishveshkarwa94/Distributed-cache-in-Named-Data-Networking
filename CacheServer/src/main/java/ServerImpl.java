@@ -58,7 +58,7 @@ public class ServerImpl implements Server{
             tail = new Node();
             head.next = tail;
             tail.previous = head;
-            bloomFilter = new CountingBloomFilter(size, 3, Hash.MURMUR_HASH);
+            bloomFilter = new CountingBloomFilter(size*100, 5, Hash.MURMUR_HASH);
             return true;
         }
         catch (Exception e){
@@ -68,20 +68,24 @@ public class ServerImpl implements Server{
 
 
     @Override
-    public void insert(String key, byte[] value) {
+    public String insert(String key, byte[] value) {
         try{
             Node temp = new Node();
             temp.key = key;
             temp.value = value;
             cache.put(key, temp);
             addNode(temp);
+            String rep = null;
             if(cache.size() > size){
                 tail = popTail();
                 cache.remove(tail.key);
+                rep = tail.key;
             }
+            return rep;
         }
         catch (Exception e){
             e.printStackTrace();
+            return null;
         }
     }
 
@@ -101,6 +105,11 @@ public class ServerImpl implements Server{
     @Override
     public CountingBloomFilter getBloomFilter() {
         return bloomFilter;
+    }
+
+    @Override
+    public int getSize() {
+        return size;
     }
 
 }
