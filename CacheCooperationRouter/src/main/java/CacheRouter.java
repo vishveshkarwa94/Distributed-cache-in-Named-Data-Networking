@@ -84,6 +84,7 @@ public class CacheRouter {
                     for(Address entry : entryList){
                         try {
                             sendData(data, entry);
+                            cacheControlServer.add(data.getName(), entry);
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -93,6 +94,22 @@ public class CacheRouter {
             }
         }
 
+
+    }
+
+    class HandleCache extends Thread{
+
+        private Packet data;
+        private Address source;
+
+        public HandleCache(Packet data, Address source){
+            this.data = data;
+            this.source = source;
+        }
+
+        public void run(){
+            cacheControlServer.remove(data.getName(), source);
+        }
 
     }
 
@@ -121,9 +138,15 @@ public class CacheRouter {
                         System.out.println("Total Requests : "+totalReq);
                         new HandleInterest(incomingPacket, source).start();
                         break;
+
                     case "data":
                         new HandleData(incomingPacket, source).start();
                         break;
+
+                    case "deleteCache":
+                        new HandleCache(incomingPacket, source).start();
+                        break;
+
                 }
             }
         } catch (Exception e) {
