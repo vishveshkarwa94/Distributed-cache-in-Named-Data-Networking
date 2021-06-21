@@ -166,7 +166,7 @@ public class Router {
     public static CountingBloomFilter deSerializeBloomFilter(byte[] data) throws IOException {
         InputStream inputStream = new ByteArrayInputStream(data);
         DataInput dataInput = new DataInputStream(inputStream);
-        CountingBloomFilter temp = new CountingBloomFilter(cacheServer.getSize(), 3, Hash.MURMUR_HASH);
+        CountingBloomFilter temp = new CountingBloomFilter(cacheServer.getSize()*100, 3, Hash.MURMUR_HASH);
         temp.readFields(dataInput);
         return temp;
     }
