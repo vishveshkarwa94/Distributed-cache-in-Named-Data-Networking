@@ -116,7 +116,7 @@ public class ServerImpl implements Server{
     public void printElements() {
         System.out.println();
         for(String key : cache.keySet()){
-            System.out.print(key.split(".")[0]+", ");
+            System.out.print(key+", ");
         }
         System.out.println();
     }

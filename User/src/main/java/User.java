@@ -11,6 +11,7 @@ public class User {
     static DatagramSocket socket;
     static Address router;
     static int size;
+    static int numRequests;
     static int totalRequest;
     static ZipfDistribution generator;
 
@@ -36,21 +37,23 @@ public class User {
 
         try{
 
-            if(args.length < 4) throw new Exception();
+            if(args.length < 5) throw new Exception();
 
             int port = Integer.parseInt(args[0]);
             socket = new DatagramSocket(port);
             size = Integer.parseInt(args[1]);
-            String routerAddress = args[2];
-            Double exponent = Double.valueOf(args[3]);
+            numRequests = Integer.parseInt(args[2]);
+            String routerAddress = args[3];
+            Double exponent = Double.valueOf(args[4]);
 
             router = new Address();
             router.ipAddress = InetAddress.getByName(routerAddress.split(":")[0]);
             router.port = Integer.parseInt(routerAddress.split(":")[1]);
             totalRequest = 0;
             generator = new ZipfDistribution(size, exponent);
-            for(int i = 0; i < 100 ; i++){
-                Thread.sleep(1000);
+            Thread.sleep(5000);
+            for(int i = 0; i < numRequests ; i++){
+                Thread.sleep(50);
                 makeRequest(generator.sample()+".txt");
             }
             System.out.println(totalRequest);
