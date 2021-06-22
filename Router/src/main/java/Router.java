@@ -207,6 +207,9 @@ public class Router {
                     case "summary":
                         cacheSummaries.put(source, deSerializeBloomFilter(incomingPacket.getData()));
                         break;
+
+                    case "print":
+                        cacheServer.printElements();
                 }
             }
         } catch (Exception e) {
@@ -224,7 +227,7 @@ public class Router {
             int nodePort = Integer.parseInt(args[0]);
             int cacheSize = Integer.parseInt(args[1]);
             String cacheCooperationRouterAddress = args[2];
-            String neighbouringAddresses = args[3];
+
 
             // Initialize socket
             socket = new DatagramSocket(nodePort);
@@ -246,14 +249,17 @@ public class Router {
 
             // Set up neighbouring node list
             nearestNeighbours = new HashSet<>();
-            String[] addresses = neighbouringAddresses.split(",");
-            for(String address : addresses){
-                InetAddress ip = InetAddress.getByName(address.split(":")[0]);
-                int port = Integer.parseInt(address.split(":")[1]);
-                Address temp = new Address();
-                temp.ipAddress = ip;
-                temp.port = port;
-                nearestNeighbours.add(temp);
+            if(args.length == 4){
+                String neighbouringAddresses = args[3];
+                String[] addresses = neighbouringAddresses.split(",");
+                for(String address : addresses){
+                    InetAddress ip = InetAddress.getByName(address.split(":")[0]);
+                    int port = Integer.parseInt(address.split(":")[1]);
+                    Address temp = new Address();
+                    temp.ipAddress = ip;
+                    temp.port = port;
+                    nearestNeighbours.add(temp);
+                }
             }
 
             Router router = new Router();

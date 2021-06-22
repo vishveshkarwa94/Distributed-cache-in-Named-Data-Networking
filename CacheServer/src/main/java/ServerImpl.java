@@ -112,4 +112,13 @@ public class ServerImpl implements Server{
         return size;
     }
 
+    @Override
+    public void printElements() {
+        System.out.println();
+        for(String key : cache.keySet()){
+            System.out.print(key+", ");
+        }
+        System.out.println();
+    }
+
 }
