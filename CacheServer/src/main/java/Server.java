@@ -8,4 +8,5 @@ public interface Server{
     public byte[] get(String key);
     public CountingBloomFilter getBloomFilter();
     public int getSize();
+    public void printElements();
 }

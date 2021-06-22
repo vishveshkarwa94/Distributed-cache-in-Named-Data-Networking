@@ -32,6 +32,10 @@ public class Packet implements Serializable {
             case "summary":
                 this.type = PacketTypes.summary;
                 break;
+
+            case "print":
+                this.type = PacketTypes.print;
+                break;
         }
     }
 
