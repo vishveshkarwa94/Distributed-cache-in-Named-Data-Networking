@@ -3,7 +3,6 @@ import org.apache.hadoop.util.bloom.CountingBloomFilter;
 import org.apache.hadoop.util.bloom.Key;
 import org.apache.hadoop.util.hash.Hash;
 
-
 import java.io.*;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -33,12 +32,18 @@ public class Router {
         }
 
         private Address getFaces(String key) {
-            for(Map.Entry<Address, CountingBloomFilter> entry : cacheSummaries.entrySet()){
-                if(entry.getValue().membershipTest(new Key(key.getBytes()))){
-                    return entry.getKey();
+            try{
+                for(Map.Entry<Address, CountingBloomFilter> entry : cacheSummaries.entrySet()){
+                    if(entry.getValue().membershipTest(new Key(key.getBytes()))){
+                        return entry.getKey();
+                    }
                 }
+                return null;
             }
-            return null;
+            catch (Exception e){
+                return null;
+            }
+
         }
 
         private void sendData(Packet data, Address destination) throws IOException {
@@ -112,7 +117,7 @@ public class Router {
         public void run(){
 
             HashSet<Address> entryList = PIT.get(data.getName());
-            if(entryList.size() > 0){
+            if(entryList!= null && entryList.size() > 0){
                 for(Address entry : entryList){
                     try {
                         send(data, entry);
@@ -121,22 +126,27 @@ public class Router {
                     }
                 }
                 if(source.ipAddress.equals(cacheCooperationRouter.ipAddress) && source.port == cacheCooperationRouter.port){
-                    String removed = cacheServer.insert(data.getName(), data.getData());
-                    localCacheSummary = cacheServer.getBloomFilter();
+
+                    synchronized (cacheServer){
+
+                        String removed = cacheServer.insert(data.getName(), data.getData());
+                        localCacheSummary = cacheServer.getBloomFilter();
+                        if(removed != null){
+                            Packet update = new Packet();
+                            update.setType("deleteCache");
+                            update.setName(removed);
+                            try {
+                                send(update, cacheCooperationRouter);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+
+                    }
                     try {
                         sendSummaryUpdate();
                     } catch (IOException e) {
                         e.printStackTrace();
-                    }
-                    if(removed != null){
-                        Packet update = new Packet();
-                        update.setType("deleteCache");
-                        update.setName(removed);
-                        try {
-                            send(update, cacheCooperationRouter);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
                     }
 
                 }
@@ -146,7 +156,6 @@ public class Router {
 
 
     }
-
 
     static Server cacheServer;
     static HashMap<String, HashSet<Address>> PIT;
@@ -185,6 +194,18 @@ public class Router {
         }
     }
 
+    private static void sendCacheDetails(Address source) throws IOException {
+        Packet packet = new Packet();
+        packet.setType("cache");
+        packet.setData(cacheServer.getElements());
+        byte[] buffer = new byte[65527];
+        DatagramPacket datagramPacket = new DatagramPacket(buffer, buffer.length);
+        datagramPacket.setPort(source.port);
+        datagramPacket.setAddress(source.ipAddress);
+        datagramPacket.setData(packet.serialize());
+        socket.send(datagramPacket);
+    }
+
     private void acceptRequests(){
 
         try {
@@ -193,23 +214,29 @@ public class Router {
                 DatagramPacket request = new DatagramPacket(buffer, buffer.length);
                 socket.receive(request);
                 Packet incomingPacket = SerializationUtils.deserialize(request.getData());
-                System.out.println("Received request type : "+incomingPacket.getType()+ " | name : "+incomingPacket.getName());
                 Address source = new Address();
                 source.ipAddress = request.getAddress();
                 source.port = request.getPort();
                 switch (incomingPacket.getType()){
                     case "interest":
+                        System.out.println("Received request type : "+incomingPacket.getType()+ " | name : "+incomingPacket.getName());
                         new HandleInterest(incomingPacket, source).start();
                         break;
+
                     case "data":
+                        System.out.println("Received request type : "+incomingPacket.getType()+ " | name : "+incomingPacket.getName());
                         new HandleData(incomingPacket, source).start();
                         break;
+
                     case "summary":
+                        System.out.println("Received request type : "+incomingPacket.getType());
                         cacheSummaries.put(source, deSerializeBloomFilter(incomingPacket.getData()));
                         break;
 
-                    case "print":
-                        cacheServer.printElements();
+                    case "getElements":
+                        System.out.println("Received request type : "+incomingPacket.getType());
+                        sendCacheDetails(source);
+                        break;
                 }
             }
         } catch (Exception e) {

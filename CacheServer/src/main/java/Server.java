@@ -1,5 +1,7 @@
 import org.apache.hadoop.util.bloom.CountingBloomFilter;
 
+import java.util.Set;
+
 
 public interface Server{
     public boolean initialize(int initializeSize);
@@ -8,5 +10,5 @@ public interface Server{
     public byte[] get(String key);
     public CountingBloomFilter getBloomFilter();
     public int getSize();
-    public void printElements();
+    public byte[] getElements();
 }

@@ -35,17 +35,19 @@ public class CacheRouter {
         public void run() {
 
             String key = interest.getName();
-            HashSet<Address> temp = PIT.get(key);
-            if(temp == null){
-                temp = new HashSet<>();
+            HashSet<Address> temp;
+            synchronized (PIT) {
+                temp = PIT.get(key);
+                if (temp == null) {
+                    temp = new HashSet<>();
+                }
+                temp.add(source);
+                PIT.put(key, temp);
             }
-            temp.add(source);
-            PIT.put(key, temp);
-
             Address nextHop = primaryServer;
             if(networkCacheSummary.membershipTest(new Key(key.getBytes()))){
                 Address router = cacheControlServer.get(key);
-                if(router != null){
+                if(router != null && !temp.contains(key)){
                     nextHop = router;
                 }
             }
@@ -54,6 +56,7 @@ public class CacheRouter {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
         }
     }
 
@@ -80,10 +83,11 @@ public class CacheRouter {
 
             synchronized (PIT){
                 HashSet<Address> entryList = PIT.get(data.getName());
-                if(entryList.size() > 0){
+                if(entryList!= null && entryList.size() > 0){
                     for(Address entry : entryList){
                         try {
                             sendData(data, entry);
+                            networkCacheSummary.add(new Key(data.getName().getBytes()));
                             cacheControlServer.add(data.getName(), entry);
                         } catch (IOException e) {
                             e.printStackTrace();
@@ -92,6 +96,7 @@ public class CacheRouter {
                     PIT.remove(data.getName());
                 }
             }
+
         }
 
 
@@ -108,7 +113,10 @@ public class CacheRouter {
         }
 
         public void run(){
-            cacheControlServer.remove(data.getName(), source);
+            networkCacheSummary.delete(new Key(data.getName().getBytes()));
+            synchronized (cacheControlServer){
+                cacheControlServer.remove(data.getName(), source);
+            }
         }
 
     }
@@ -171,7 +179,6 @@ public class CacheRouter {
             cacheControlServer = new ControlServer();
             cacheControlServer.initialize();
 
-            // Set up cache cooperation router
             InetAddress primaryServerIp = InetAddress.getByName(primaryServerAddress.split(":")[0]);
             int primaryServerPort = Integer.parseInt(primaryServerAddress.split(":")[1]);
             primaryServer = new Address();

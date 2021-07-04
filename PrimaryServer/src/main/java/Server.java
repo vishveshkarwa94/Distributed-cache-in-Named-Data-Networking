@@ -1,5 +1,7 @@
 import org.apache.commons.lang3.SerializationUtils;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -21,7 +23,7 @@ public class Server {
 
         public void run(){
             totalReq ++;
-            System.out.println("Received request for : "+dataName+" || Total Req : "+totalReq);
+            System.out.println("Received request for : "+dataName);
             String path = "DataFiles/Files/"+dataName;
             File file = new File(path);
             try {
@@ -50,6 +52,21 @@ public class Server {
     static DatagramSocket socket;
     static int totalReq;
 
+    private void sendTotal(Address source) throws IOException {
+        byte[] buffer = new byte[65527];
+        DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+        packet.setAddress(source.ipAddress);
+        packet.setPort(source.port);
+        ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
+        DataOutputStream dataOut = new DataOutputStream(byteOut);
+        dataOut.writeInt(totalReq);
+        dataOut.close();
+        byte[] data = byteOut.toByteArray();
+        packet.setData(data);
+        socket.send(packet);
+        totalReq = 0;
+    }
+
     private void acceptRequests(){
         try {
             while (true) {
@@ -60,11 +77,16 @@ public class Server {
                 Address source = new Address();
                 source.ipAddress = request.getAddress();
                 source.port = request.getPort();
-                if(incomingPacket.getType().equals("interest")) new HandleRequest(source, incomingPacket.getName()).start();
+                if(incomingPacket.getType().equals("interest")) {
+                    new HandleRequest(source, incomingPacket.getName()).start();
+                }
+                else if(incomingPacket.getType().equals("getHits")){
+                    System.out.println("Get Hits");
+                    sendTotal(source);
+                }
             }
-
         } catch (Exception e) {
-            System.out.println(e);
+            e.printStackTrace();
         } finally {
             if (socket != null) socket.close();
         }

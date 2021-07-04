@@ -1,9 +1,10 @@
+import com.google.gson.Gson;
 import org.apache.hadoop.util.bloom.CountingBloomFilter;
 import org.apache.hadoop.util.bloom.Key;
 import org.apache.hadoop.util.hash.Hash;
 
+import java.util.ArrayList;
 import java.util.HashMap;
-
 
 public class ServerImpl implements Server{
 
@@ -113,12 +114,12 @@ public class ServerImpl implements Server{
     }
 
     @Override
-    public void printElements() {
-        System.out.println();
-        for(String key : cache.keySet()){
-            System.out.print(key+", ");
-        }
-        System.out.println();
+    public byte[] getElements(){
+        Gson gson = new Gson();
+        ArrayList<String> keys = new ArrayList<>();
+        for(String key :  cache.keySet()) keys.add(key);
+        String temp = gson.toJson(keys);
+        return temp.getBytes();
     }
 
 }

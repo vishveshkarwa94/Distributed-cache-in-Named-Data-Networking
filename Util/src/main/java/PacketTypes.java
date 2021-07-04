@@ -3,5 +3,6 @@ public enum  PacketTypes {
     data,
     deleteCache,
     summary,
-    print
+    getElements,
+    getHits
 }

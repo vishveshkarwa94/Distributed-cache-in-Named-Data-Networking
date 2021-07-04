@@ -8,7 +8,9 @@ public class Packet implements Serializable {
     private byte[] data;
 
     public Packet(){
-
+        type = null;
+        name = null;
+        data = null;
     }
 
     public String getType() {
@@ -33,8 +35,12 @@ public class Packet implements Serializable {
                 this.type = PacketTypes.summary;
                 break;
 
-            case "print":
-                this.type = PacketTypes.print;
+            case "getElements":
+                this.type = PacketTypes.getElements;
+                break;
+
+            case "getHits":
+                this.type = PacketTypes.getHits;
                 break;
         }
     }

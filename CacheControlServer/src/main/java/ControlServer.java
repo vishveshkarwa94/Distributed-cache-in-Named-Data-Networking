@@ -9,12 +9,12 @@ public class ControlServer {
     }
 
     public void add(String dataName, Address router){
-
         ArrayList temp = map.get(dataName);
         if(temp == null){
             temp = new ArrayList();
         }
         temp.add(router);
+        map.put(dataName, temp);
     }
 
     public Address get(String dataName){
