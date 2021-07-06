@@ -58,37 +58,39 @@ public class Router {
         public void run() {
 
             String key = interest.getName();
-            if(cacheServer.isPresent(key)){
-                try {
-                    Packet data = new Packet();
-                    data.setName(interest.getName());
-                    data.setType("data");
-                    data.setData(cacheServer.get(key));
-                    sendData(data, source);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            else {
-                HashSet<Address> temp = PIT.get(key);
-                if(temp == null){
-                    temp = new HashSet<>();
-                }
-                temp.add(source);
-                PIT.put(key, temp);
-                Address matchingFace = getFaces(key);
-                if(matchingFace == null || temp.contains(matchingFace)){
+            synchronized (cacheServer){
+                if(cacheServer.isPresent(key)){
                     try {
-                        forwardRequest(cacheCooperationRouter);
+                        Packet data = new Packet();
+                        data.setName(interest.getName());
+                        data.setType("data");
+                        data.setData(cacheServer.get(key));
+                        sendData(data, source);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                 }
                 else {
-                    try {
-                        forwardRequest(matchingFace);
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                    HashSet<Address> temp = PIT.get(key);
+                    if(temp == null){
+                        temp = new HashSet<>();
+                    }
+                    temp.add(source);
+                    PIT.put(key, temp);
+                    Address matchingFace = getFaces(key);
+                    if(matchingFace == null || temp.contains(matchingFace)){
+                        try {
+                            forwardRequest(cacheCooperationRouter);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    else {
+                        try {
+                            forwardRequest(matchingFace);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
             }
@@ -252,7 +254,7 @@ public class Router {
             if(args.length < 3) throw new Exception();
 
             int nodePort = Integer.parseInt(args[0]);
-            int cacheSize = Integer.parseInt(args[1]);
+            int cacheSize = 50;//Integer.parseInt(args[1]);
             String cacheCooperationRouterAddress = args[2];
 
 
