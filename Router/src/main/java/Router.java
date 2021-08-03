@@ -12,7 +12,7 @@ import java.util.*;
 
 public class Router {
 
-    class HandleInterest extends Thread{
+    class HandleInterest implements Runnable{
 
         Packet interest;
         Address source;
@@ -97,7 +97,7 @@ public class Router {
         }
     }
 
-    class HandleData extends Thread{
+    class HandleData implements Runnable{
 
         Packet data;
         Address source;
@@ -222,12 +222,12 @@ public class Router {
                 switch (incomingPacket.getType()){
                     case "interest":
                         System.out.println("Received request type : "+incomingPacket.getType()+ " | name : "+incomingPacket.getName());
-                        new HandleInterest(incomingPacket, source).start();
+                        new HandleInterest(incomingPacket, source).run();
                         break;
 
                     case "data":
                         System.out.println("Received request type : "+incomingPacket.getType()+ " | name : "+incomingPacket.getName());
-                        new HandleData(incomingPacket, source).start();
+                        new HandleData(incomingPacket, source).run();
                         break;
 
                     case "summary":
@@ -300,6 +300,5 @@ public class Router {
             e.printStackTrace();
             System.exit(1);
         }
-
     }
 }

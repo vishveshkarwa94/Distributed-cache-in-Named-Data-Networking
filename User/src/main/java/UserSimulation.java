@@ -46,11 +46,12 @@ public class UserSimulation{
                 socket.send(request);
                 DatagramPacket reply = new DatagramPacket(buffer, buffer.length);
                 socket.receive(reply);
-                Packet rep = SerializationUtils.deserialize(reply.getData());
-                if(!rep.getName().equals(name)) System.out.println(name+":"+rep.getName()+" ERROR");
+                //Packet rep = SerializationUtils.deserialize(reply.getData());
+                //if(!rep.getName().equals(name)) System.out.println(name+":"+rep.getName()+" ERROR :"+port);
             }
-
+            socket.close();
             Thread.sleep(100);
+            socket = new DatagramSocket(port+10);
             Packet interest_packet = new Packet();
             interest_packet.setType("getElements");
             byte[] buffer = new byte[65527];

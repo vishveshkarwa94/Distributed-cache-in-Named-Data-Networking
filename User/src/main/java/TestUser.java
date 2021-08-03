@@ -25,17 +25,56 @@ public class TestUser {
         DatagramPacket reply = new DatagramPacket(buffer, buffer.length);
         socket.receive(reply);
         Packet replyPacket = SerializationUtils.deserialize(reply.getData());
-        System.out.println("Received data for name : "+replyPacket.getName());
+        //System.out.println("Received data for name : "+replyPacket.getName());
     }
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, InterruptedException {
 
         socket = new DatagramSocket(311);
         router = new Address();
         router.ipAddress = InetAddress.getByName("192.168.50.52");
         router.port = 306;
-        makeRequest("17.txt");
 
+        makeRequest("101.txt");
+
+        long tot = 0;
+        for(int i = 51 ; i < 101 ; i ++){
+            Thread.sleep(100);
+            long start = System.currentTimeMillis();
+            makeRequest(i+".txt");
+            long finish = System.currentTimeMillis();
+            long timeElapsed = finish - start;
+            tot += timeElapsed;
+            System.out.print(timeElapsed+", ");
+        }
+        System.out.println();
+        System.out.println((double) tot/50);
+        tot = 0;
+        for(int i = 51 ; i < 101 ; i ++){
+            Thread.sleep(100);
+            long start = System.currentTimeMillis();
+            makeRequest(i+".txt");
+            long finish = System.currentTimeMillis();
+            long timeElapsed = finish - start;
+            tot += timeElapsed;
+            System.out.print(timeElapsed+", ");
+        }
+        System.out.println();
+        System.out.println((double) tot/50);
+        router.port = 303;
+        tot = 0;
+        for(int i = 51 ; i < 101 ; i ++){
+            Thread.sleep(100);
+            long start = System.currentTimeMillis();
+            makeRequest(i+".txt");
+            long finish = System.currentTimeMillis();
+            long timeElapsed = finish - start;
+            tot += timeElapsed;
+            System.out.print(timeElapsed+", ");
+        }
+        System.out.println();
+        System.out.println((double) tot/50);
+        socket.close();
     }
 
 }
