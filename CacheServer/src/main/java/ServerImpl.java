@@ -25,6 +25,15 @@ public class ServerImpl implements Server{
 
     private void removeNode(Node node){
         Node previous = node.previous;
+        if(previous == null) {
+            Node temp = head.next;
+            System.out.print(node.key+" : ");
+            while (temp != tail){
+                System.out.print(node.key+" ,");
+                temp = temp.next;
+            }
+            System.out.println();
+        }
         Node next = node.next;
         previous.next = next;
         next.previous = previous;

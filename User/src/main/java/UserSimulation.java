@@ -33,9 +33,11 @@ public class UserSimulation{
             DatagramSocket socket = new DatagramSocket(port);
             Packet packet = new Packet();
             packet.setType("interest");
+
             for(int i = 0; i < numRequests;i++){
-                Thread.sleep(50);
-                packet.setName(generator.sample()+".txt");
+                Thread.sleep(100);
+                String name = generator.sample()+".txt";
+                packet.setName(name);
                 byte[] buffer = new byte[65527];
                 DatagramPacket request = new DatagramPacket(buffer, buffer.length);
                 request.setAddress(router.ipAddress);
@@ -44,6 +46,8 @@ public class UserSimulation{
                 socket.send(request);
                 DatagramPacket reply = new DatagramPacket(buffer, buffer.length);
                 socket.receive(reply);
+                Packet rep = SerializationUtils.deserialize(reply.getData());
+                if(!rep.getName().equals(name)) System.out.println(name+":"+rep.getName()+" ERROR");
             }
 
             Thread.sleep(100);
@@ -77,10 +81,11 @@ public class UserSimulation{
 
     static int numRequests = 100;
     static ZipfDistribution generator;
-    static Set cacheElements;
+    static Set<String> cacheElements;
     static ArrayList<Address> routers;
     static int startPort;
     static Address serverAddress;
+    static String type;
 
     private int getServerHits() throws IOException {
         DatagramSocket socket = new DatagramSocket(startPort);
@@ -102,7 +107,41 @@ public class UserSimulation{
 
     }
 
-    private void processZipf() throws InterruptedException, IOException {
+    private void makeThreads(){
+        UserThread[] threads = new UserThread[routers.size()];
+        for(int i = 0; i < threads.length; i++)
+        {
+            threads[i] = new UserThread(startPort+i, routers.get(i));
+        }
+        for(int i = 0; i < threads.length; i++)
+        {
+            threads[i].start();
+        }
+
+        boolean isAlive = true;
+
+        while (isAlive) {
+
+            isAlive = false;
+
+            for(int i = 0; i < threads.length; i++) {
+                isAlive = ( isAlive || threads[i].isAlive());
+            }
+
+        }
+    }
+
+    private void initialSetUp(int numReq, double ex, int numContents) throws IOException {
+        int tempNum = numRequests;
+        numRequests = numReq;
+        generator = new ZipfDistribution(numContents,ex);
+        cacheElements = new HashSet();
+        makeThreads();
+        getServerHits();
+        numRequests = tempNum;
+    }
+
+    private void processZipf() throws IOException {
 
         System.out.println("************* Test : Variable Zipf || Catalog size: 500 *************");
         ArrayList<Double> exponents = new ArrayList<>();
@@ -111,39 +150,17 @@ public class UserSimulation{
         exponents.add(0.7);
         exponents.add(0.8);
         exponents.add(0.9);
+
         for (Double ex : exponents) {
+            initialSetUp(500, ex, 500);
             generator = new ZipfDistribution(500,ex);
             cacheElements = new HashSet();
-            UserThread[] threads = new UserThread[routers.size()];
-            for(int i = 0; i < threads.length; i++)
-            {
-                threads[i] = new UserThread(startPort+i, routers.get(i));
-            }
-            for(int i = 0; i < threads.length; i++)
-            {
-                threads[i].start();
-            }
-
-            boolean isAlive = true;
-
-            while (isAlive) {
-
-                isAlive = false;
-
-                for(int i = 0; i < threads.length; i++) {
-                    isAlive = ( isAlive || threads[i].isAlive());
-                }
-
-            }
-
+            makeThreads();
             int serverHits = getServerHits();
-            int cacheDiversity = cacheElements.size();
             int totalReq = numRequests*routers.size();
             int cacheHit = totalReq - serverHits;
             double cacheHitRatio = ((double)cacheHit/totalReq)*100;
-            double diversityRatio = ((double) cacheDiversity/500) *100;
-            System.out.println("Zipf paramater : "+ex+" | Cache Hit Ratio : " + cacheHitRatio+
-                    " | Diversity Ratio : "+diversityRatio);
+            System.out.println("Zipf paramater : "+ex+" | Cache Hit Ratio : " + cacheHitRatio);
         }
         System.out.println("************* Test End *************");
     }
@@ -157,31 +174,12 @@ public class UserSimulation{
         numContents.add(300);
         numContents.add(400);
         numContents.add(500);
+        initialSetUp(500, 0.7, 200);
         for (Integer nc : numContents) {
+            initialSetUp(500, 0.7, nc);
             generator = new ZipfDistribution(nc,0.7);
             cacheElements = new HashSet();
-            UserThread[] threads = new UserThread[routers.size()];
-            for(int i = 0; i < threads.length; i++)
-            {
-                threads[i] = new UserThread(startPort+i, routers.get(i));
-            }
-            for(int i = 0; i < threads.length; i++)
-            {
-                threads[i].start();
-            }
-
-            boolean isAlive = true;
-
-            while (isAlive) {
-
-                isAlive = false;
-
-                for(int i = 0; i < threads.length; i++) {
-                    isAlive = ( isAlive || threads[i].isAlive());
-                }
-
-            }
-
+            makeThreads();
             int serverHits = getServerHits();
             int cacheDiversity = cacheElements.size();
             int totalReq = numRequests*routers.size();
@@ -196,9 +194,9 @@ public class UserSimulation{
 
 
 
-    private void start() throws IOException, InterruptedException {
-        processZipf();
-        processNumContents();
+    private void start() throws IOException {
+        if(type.equals("zipf")) processZipf();
+        else processNumContents();
     }
 
     public static void main(String[] args) {
@@ -206,8 +204,10 @@ public class UserSimulation{
             if(args.length < 3) throw new Exception();
 
             startPort = Integer.parseInt(args[0]);
-            String routerAddresses = args[1];
-            String serverAddressString = args[2];
+            numRequests = Integer.parseInt(args[1]);
+            type = args[2];
+            String routerAddresses = args[3];
+            String serverAddressString = args[4];
 
             routers = new ArrayList<>();
             for(String routerAddress : routerAddresses.split(",")){

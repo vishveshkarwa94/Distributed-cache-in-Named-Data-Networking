@@ -33,8 +33,8 @@ public class TestUser {
         socket = new DatagramSocket(311);
         router = new Address();
         router.ipAddress = InetAddress.getByName("192.168.50.52");
-        router.port = 305;
-        makeRequest("1.txt");
+        router.port = 306;
+        makeRequest("17.txt");
 
     }
 
